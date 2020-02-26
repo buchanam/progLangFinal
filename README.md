@@ -1,7 +1,7 @@
 Team Members:
-Monica Holliday - hollidmo
-Mitchell Schenk - schenkmi
-Michaela Buchanan - buchanam
+Monica Holliday - hollidmo  
+Mitchell Schenk - schenkmi  
+Michaela Buchanan - buchanam  
 
 A very brief (2-3 sentence) introduction to your language. This should include its name of your language, the language’s paradigm, and the most interesting features you decided to include.
 
