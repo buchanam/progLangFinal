@@ -8,6 +8,7 @@ type Prog = [Cmd]
 data Cmd = PushN Int
          | PushB Bool
          | PushS String
+         | Pop
          | Add
          | Sub
          | Mul
@@ -15,6 +16,7 @@ data Cmd = PushN Int
          | Equ
          | Gt
          | Lt
+         | Concat
     deriving (Eq,Show)
 
 data Block
@@ -26,40 +28,35 @@ data Block
 type Stack = [Block]
 
 -- I think when we do static typing we won't need the maybe
-cmd :: Cmd -> Stack -> Maybe Stack
-cmd (PushN i) s     = Just (I i : s)
-cmd (PushB b) s     = Just (B b : s)
-cmd (PushS c) s     = Just (S c : s)
+cmd :: Cmd -> Stack -> Stack
+cmd (PushN i) s     = I i : s
+cmd (PushB b) s     = B b : s
+cmd (PushS c) s     = S c : s
+cmd Pop       s     = case s of
+                        (a : s')         -> s'
 cmd Add       s     = case s of
-                        (I a : I b : s') -> Just (I (a+b) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (I (a+b) : s')
 cmd Sub       s     = case s of
-                        (I a : I b : s') -> Just (I (a-b) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (I (a-b) : s')
 cmd Mul       s     = case s of
-                        (I a : I b : s') -> Just (I (a*b) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (I (a*b) : s')
 cmd Div       s     = case s of
-                        (_ : I 0 : s') -> Nothing
-                        (I c : I d : s') -> Just (I (c `div` d) : s')
-                        _                -> Nothing
+                        (I c : I d : s') -> (I (c `div` d) : s')
 cmd Equ       s     = case s of
-                        (I a : I b : s') -> Just (B (a == b) : s')
-                        (B c : B d : s') -> Just (B (c == d) : s')
-                        (S e : S f : s') -> Just (B (e == f) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (B (a == b) : s')
+                        (B c : B d : s') -> (B (c == d) : s')
+                        (S e : S f : s') -> (B (e == f) : s')
 cmd Gt        s     = case s of
-                        (I a : I b : s') -> Just (B (a>b) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (B (a>b) : s')
 cmd Lt        s     = case s of
-                        (I a : I b : s') -> Just (B (a<b) : s')
-                        _                -> Nothing
+                        (I a : I b : s') -> (B (a<b) : s')
+cmd Concat    s     = case s of
+                        (S a : S b : s') -> (S (a++b) : s')
 
-prog :: Prog -> Stack -> Maybe Stack
-prog [] s       = Just s
+prog :: Prog -> Stack -> Stack
+prog [] s       = s
 prog (c : cs) s    = case cmd c s of
-                    Just s' -> prog cs s'
-                    _       -> Nothing
+                    s' -> prog cs s'
                      
 
 
