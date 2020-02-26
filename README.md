@@ -1,4 +1,4 @@
-Team Members:
+Team Members:  
 Monica Holliday - hollidmo  
 Mitchell Schenk - schenkmi  
 Michaela Buchanan - buchanam  
