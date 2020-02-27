@@ -76,15 +76,17 @@ cmd (IfElse t e) s d = case s of
                         (B True : s')    -> prog t s' d
                         (B False : s')   -> prog e s' d
 cmd Loop      s  d   = case s of
-                        (P p : I a : I b : s') -> ((loop p s' [I a, I b]), d)
+                        (P p : I a : I b : s') -> (loop p s' [I a, I b] d)
 cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
 
-loop :: Prog -> Stack -> Stack -> Dict -> Stack
+loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
 loop cmds ds cs d = case cs of
-                    (I a : I b : cs') -> if a < b then (loop cmds (prog cmds ds d) (I (a+1) : I b : cs') ) else ds
+                    (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
+                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d 
+                                                  else (ds, d)
 
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
