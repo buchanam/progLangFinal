@@ -8,6 +8,7 @@ type Prog = [Cmd]
 data Cmd = PushN Int
          | PushB Bool
          | PushS String
+         | PushP Prog
          | Drop
          | Dup
          | Swap
@@ -23,12 +24,14 @@ data Cmd = PushN Int
          | Concat
          | IfElse Prog Prog
          | Macro Prog
+         | Loop
     deriving (Eq,Show)
 
 data Block
         = I Int
         | B Bool
         | S String
+        | P Prog
     deriving (Eq,Show)
 
 type Stack = [Block]
@@ -38,6 +41,7 @@ cmd :: Cmd -> Stack -> Stack
 cmd (PushN i) s     = I i : s
 cmd (PushB b) s     = B b : s
 cmd (PushS c) s     = S c : s
+cmd (PushP p) s     = P p : s
 cmd Drop      s     = case s of
                         (a : s')         -> s'
 cmd Dup       s     = case s of 
@@ -66,21 +70,20 @@ cmd Lt        s     = case s of
                         (I a : I b : s') -> (B (a<b) : s')
 cmd Concat    s     = case s of
                         (S a : S b : s') -> (S (a++b) : s')
-cmd (IfElse t e)    s     = case s of
+cmd (IfElse t e) s  = case s of
                         (B True : s')    -> prog t s'
                         (B False : s')   -> prog e s' 
+cmd Loop      s     = case s of
+                        (P p : I a : I b : s') -> loop p s' [I a, I b]
+
+loop :: Prog -> Stack -> Stack -> Stack
+loop cmds ds cs = case cs of
+                    (I a : I b : cs') -> if a < b then (loop cmds (prog cmds ds) (I (a+1) : I b : cs') ) else ds
 
 prog :: Prog -> Stack -> Stack
 prog [] s       = s
 prog (c : cs) s    = case cmd c s of
-                    s' -> prog cs s'
+                       s' -> prog cs s'
                      
-
-
-
-
-
-
-
 
 
