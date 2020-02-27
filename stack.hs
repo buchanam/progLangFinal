@@ -85,7 +85,7 @@ cmd (Call n)  s  d  = case lookup n d of
 loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
 loop cmds ds cs d = case cs of
                     (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
-                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d 
+                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d' 
                                                   else (ds, d)
 
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
