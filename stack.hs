@@ -8,15 +8,8 @@ type Stack = [Block]
 type Macro = String
 type Dict = [(String, Prog)]
 
-data Cmd = PushN Int
-         | PushB Bool
-         | PushS String
-         | PushP Prog
-         | Drop
-         | Dup
-         | Swap
-         | Over
-         | Rot
+data Cmd = PushB Block
+         | SOp StCmd
          | Add
          | Sub
          | Mul
@@ -38,22 +31,28 @@ data Block
         | P Prog
     deriving (Eq,Show)
 
+data StCmd
+        = Drop 
+        | Dup
+        | Swap
+        | Over
+        | Rot
+    deriving (Eq,Show)
+
 -- I think when we do static typing we won't need the maybe
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
-cmd (PushN i) s  d  = ((I i : s), d)
-cmd (PushB b) s  d  = ((B b : s), d)
-cmd (PushS c) s  d  = ((S c : s), d)
-cmd (PushP p) s  d  = ((P p : s), d)
-cmd Drop      s  d  = case s of
-                        (a : s')         -> (s', d)
-cmd Dup       s  d  = case s of 
-                        (a : s')         -> ((a : a : s'), d)
-cmd Swap      s  d  = case s of
-                        (a : b : s')     -> ((b : a : s'), d)
-cmd Over      s  d  = case s of
-                        (a : b : s')     -> ((a : b : a : s'), d)
-cmd Rot       s  d  = case s of
-                        (a : b : c : s') -> ((b : c : a : s'), d)
+cmd (PushB b) s  d  = ((b : s), d)
+cmd (SOp c)   s  d  = case c of
+                        Drop -> case s of
+                                    (a : s')         -> (s', d) 
+                        Dup  -> case s of 
+                                    (a : s')         -> ((a : a : s'), d)
+                        Swap -> case s of
+                                    (a : b : s')     -> ((b : a : s'), d)
+                        Over -> case s of
+                                    (a : b : s')     -> ((b : a : b : s'), d)
+                        Rot  -> case s of
+                                    (a : b : c : s') -> ((b : c : a : s'), d)
 cmd Add       s  d  = case s of
                         (I a : I b : s') -> ((I (a+b) : s'), d)
 cmd Sub       s  d  = case s of
