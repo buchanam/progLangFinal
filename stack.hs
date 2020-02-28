@@ -42,7 +42,7 @@ data StCmd
         | Rot
     deriving (Eq,Show)
 
--- I think when we do static typing we won't need the maybe
+-- Cmd Semantic Function
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = case c of
@@ -88,30 +88,34 @@ cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
 
+-- loop helper function
 loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
 loop cmds ds cs d = case cs of
                     (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
                                                         (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d
                                                   else (ds, d)
 
+-- while helper function
 while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
-while c p b s d = case ((cmd Dup s d), (cmd Dup [b] d)) of
+while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
                     ((s1, _), (s2, _)) -> case (cmd c ((head s1) : s2) d) of
                                               ((B False : b : cs'), d') -> (s, d')
-                                              ((B True  : b : cs'), d') -> case (prog p s d') of
-                                                                             (ds', d'') -> while c p b ds' d''
+                                              ((B True  : b : cs'), d') -> case (prog p s d') of                             
+                                                (ds', d'') -> while c p b ds' d''
 
+-- Semantic function for Prog
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
                        (s', d') -> prog cs s' d'
 
+-- Run list of cmds with empty stack and empty dict
 myLang :: [Cmd] -> Stack
 myLang [] = []
 myLang p = case (prog p [] []) of
              (s, d) -> s
 
--- good example Euclid's Algorithm
--- gcd = [PushN 210, PushN 45, Over, Over, Gt, IfElse [Swap] [], PushN 0, PushP [Dup, Rot, Mod], While Gt, Drop]
+-- good example Euclid's Algorithm for testing
+gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, Gt, IfElse [SOp Swap] [], PushB (I 0), PushB (P [SOp Dup, SOp Rot, Mod]), While Gt, SOp Drop]
 -- myLang gcd
 -- [I 15]
