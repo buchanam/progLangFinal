@@ -13,6 +13,7 @@ data Cmd = PushB Block
          | Add
          | Sub
          | Mul
+         | Mod
          | Div
          | Equ
          | Gt
@@ -21,7 +22,9 @@ data Cmd = PushB Block
          | IfElse Prog Prog
          | Define Macro Prog
          | Call Macro
+         | Macro Prog
          | Loop
+         | While Cmd
     deriving (Eq,Show)
 
 data Block
@@ -41,6 +44,7 @@ data StCmd
 
 -- I think when we do static typing we won't need the maybe
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
+<<<<<<< HEAD
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = case c of
                         Drop -> case s of
@@ -56,11 +60,13 @@ cmd (SOp c)   s  d  = case c of
 cmd Add       s  d  = case s of
                         (I a : I b : s') -> ((I (a+b) : s'), d)
 cmd Sub       s  d  = case s of
-                        (I a : I b : s') -> ((I (a-b) : s'), d)
+                        (I a : I b : s') -> ((I (b-a) : s'), d)
 cmd Mul       s  d  = case s of
                         (I a : I b : s') -> ((I (a*b) : s'), d)
 cmd Div       s  d  = case s of
-                        (I c : I g : s') -> ((I (c `div` g) : s'), d)
+                        (I c : I g : s') -> ((I (g `div` c) : s'), d)
+cmd Mod       s  d  = case s of
+                        (I a : I b : s') -> ((I (b `mod` a) : s'), d)
 cmd Equ       s  d  = case s of
                         (I a : I b : s') -> ((B (a == b) : s'), d)
                         (B c : B g : s') -> ((B (c == g) : s'), d)
@@ -70,12 +76,14 @@ cmd Gt        s  d  = case s of
 cmd Lt        s  d  = case s of
                         (I a : I b : s') -> ((B (a<b) : s'), d)
 cmd Concat    s  d  = case s of
-                        (S a : S b : s') -> ((S (a++b) : s'), d)
+                        (S a : S b : s') -> ((S (b++a) : s'), d)
 cmd (IfElse t e) s d = case s of
                         (B True : s')    -> prog t s' d
                         (B False : s')   -> prog e s' d
 cmd Loop      s  d   = case s of
                         (P p : I a : I b : s') -> (loop p s' [I a, I b] d)
+cmd (While c) s  d   = case s of
+                        (P p : b : s') -> while c p b s' d
 cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
@@ -84,13 +92,27 @@ cmd (Call n)  s  d  = case lookup n d of
 loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
 loop cmds ds cs d = case cs of
                     (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
-                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d 
+                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d
                                                   else (ds, d)
+
+while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
+while c p b s d = case ((cmd Dup s d), (cmd Dup [b] d)) of
+                    ((s1, _), (s2, _)) -> case (cmd c ((head s1) : s2) d) of
+                                              ((B False : b : cs'), d') -> (s, d')
+                                              ((B True  : b : cs'), d') -> case (prog p s d') of
+                                                                             (ds', d'') -> while c p b ds' d''
 
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
                        (s', d') -> prog cs s' d'
-                     
 
+myLang :: [Cmd] -> Stack
+myLang [] = []
+myLang p = case (prog p [] []) of
+             (s, d) -> s
 
+-- good example Euclid's Algorithm
+-- gcd = [PushN 210, PushN 45, Over, Over, Gt, IfElse [Swap] [], PushN 0, PushP [Dup, Rot, Mod], While Gt, Drop]
+-- myLang gcd
+-- [I 15]
