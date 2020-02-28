@@ -44,7 +44,6 @@ data StCmd
 
 -- I think when we do static typing we won't need the maybe
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
-<<<<<<< HEAD
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = case c of
                         Drop -> case s of
@@ -96,7 +95,7 @@ loop cmds ds cs d = case cs of
                                                   else (ds, d)
 
 while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
-while c p b s d = case ((cmd Dup s d), (cmd Dup [b] d)) of
+while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
                     ((s1, _), (s2, _)) -> case (cmd c ((head s1) : s2) d) of
                                               ((B False : b : cs'), d') -> (s, d')
                                               ((B True  : b : cs'), d') -> case (prog p s d') of
@@ -107,12 +106,12 @@ prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
                        (s', d') -> prog cs s' d'
 
-myLang :: [Cmd] -> Stack
-myLang [] = []
-myLang p = case (prog p [] []) of
+stackm :: [Cmd] -> Stack
+stackm [] = []
+stackm p = case (prog p [] []) of
              (s, d) -> s
 
 -- good example Euclid's Algorithm
 -- gcd = [PushN 210, PushN 45, Over, Over, Gt, IfElse [Swap] [], PushN 0, PushP [Dup, Rot, Mod], While Gt, Drop]
--- myLang gcd
+-- stackm gcd
 -- [I 15]
