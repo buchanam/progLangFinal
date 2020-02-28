@@ -44,7 +44,6 @@ data StCmd
 
 -- I think when we do static typing we won't need the maybe
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
-<<<<<<< HEAD
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = case c of
                         Drop -> case s of
