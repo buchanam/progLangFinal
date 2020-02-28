@@ -1,10 +1,13 @@
-Team Members:  
+STACK-M  
+
 Monica Holliday - hollidmo  
 Mitchell Schenk - schenkmi  
 Michaela Buchanan - buchanam  
 
-The language we developed is called stack-m which is a stack based language.  
-The language implements all the basic data types including integers, booleans, and strings.  Additionally the language can be used to define and call macros, loop over a sequence of commands, and perform conditional logic.  
+A basic stack-based language which utilizes stack operations, similar to Forth, to perform arithmetic and logical operations. It includes features such as conditionals, loops, macros with more to come. The language has more than one stack to provide loop functionality and
+uses a dictionary to provide the ability to define and call macros.
+
+The language is designed to run from GHCI loading stack.hs.
 
 To use the stack-m language using ghci:
     1) load the file stack.hs

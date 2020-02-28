@@ -35,20 +35,20 @@ data Block
     deriving (Eq,Show)
 
 data StCmd
-        = Drop 
+        = Drop
         | Dup
         | Swap
         | Over
         | Rot
     deriving (Eq,Show)
 
--- I think when we do static typing we won't need the maybe
+-- Cmd Semantic Function
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = case c of
                         Drop -> case s of
-                                    (a : s')         -> (s', d) 
-                        Dup  -> case s of 
+                                    (a : s')         -> (s', d)
+                        Dup  -> case s of
                                     (a : s')         -> ((a : a : s'), d)
                         Swap -> case s of
                                     (a : b : s')     -> ((b : a : s'), d)
@@ -88,19 +88,22 @@ cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
 
+-- loop helper function
 loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
 loop cmds ds cs d = case cs of
                     (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
                                                         (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d
                                                   else (ds, d)
 
+-- while helper function
 while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
 while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
                     ((s1, _), (s2, _)) -> case (cmd c ((head s1) : s2) d) of
                                               ((B False : b : cs'), d') -> (s, d')
                                               ((B True  : b : cs'), d') -> case (prog p s d') of
-                                                                             (ds', d'') -> while c p b ds' d''
+                                                (ds', d'') -> while c p b ds' d''
 
+-- Semantic function for Prog
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
@@ -110,8 +113,3 @@ stackm :: [Cmd] -> Stack
 stackm [] = []
 stackm p = case (prog p [] []) of
              (s, d) -> s
-
--- good example Euclid's Algorithm
--- gcd = [PushN 210, PushN 45, Over, Over, Gt, IfElse [Swap] [], PushN 0, PushP [Dup, Rot, Mod], While Gt, Drop]
--- stackm gcd
--- [I 15]
