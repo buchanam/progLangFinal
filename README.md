@@ -9,11 +9,11 @@ uses a dictionary to provide the ability to define and call macros.
 
 The language is designed to run from GHCI loading stack.hs.
 
-To use the stack-m language using ghci:
-    1) load the file stack.hs
-    2) type the command "stackm" followed by a list of valid commands
-        - eg "stackm [PushB (I 2), PushB (I 3), Mul]" will produce the stack [I 6]
-
+To use the stack-m language using ghci:  
+    1) load the file stack.hs  
+    2) type the command "stackm" followed by a list of valid commands  
+        - eg "stackm [PushB (I 2), PushB (I 3), Mul]" will produce the stack [I 6]  
+  
 A more complicated example is the implementation of Euclid's Algorithm to solve for the gcd of two numbers.
     1) using ghci create the list of commands as follows:
         - gcd = [SOp Over, SOp Over, Gt, IfElse [SOp Swap] [], PushB (I 0), PushB (P [SOp Dup, SOp Rot, Mod]), While Gt, SOp Drop]
