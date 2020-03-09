@@ -22,16 +22,13 @@ data Cmd = PushB Block
          | IfElse Prog Prog
          | Define Macro Prog
          | Call Macro
-         | Macro Prog
-         | Loop
-         | While Cmd
+         | While Cmd Block Prog
     deriving (Eq,Show)
 
 data Block
         = I Int
         | B Bool
         | S String
-        | P Prog
     deriving (Eq,Show)
 
 data StCmd
@@ -79,21 +76,11 @@ cmd Concat    s  d  = case s of
 cmd (IfElse t e) s d = case s of
                         (B True : s')    -> prog t s' d
                         (B False : s')   -> prog e s' d
-cmd Loop      s  d   = case s of
-                        (P p : I a : I b : s') -> (loop p s' [I a, I b] d)
-cmd (While c) s  d   = case s of
-                        (P p : b : s') -> while c p b s' d
+cmd (While c b p) s  d   = while c p b s d
 cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
-
--- loop helper function
-loop :: Prog -> Stack -> Stack -> Dict -> (Stack, Dict)
-loop cmds ds cs d = case cs of
-                    (I a : I b : cs') -> if a < b then case (prog cmds ds d) of
-                                                        (ds', d') -> loop cmds ds' (I (a+1) : I b : cs') d
-                                                  else (ds, d)
 
 -- while helper function
 while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
