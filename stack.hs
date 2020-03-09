@@ -17,7 +17,7 @@ data Cmd = PushB Block
          | IfElse Prog Prog
          | Define Macro Prog
          | Call Macro
-         | While Cmd Block Prog
+         | While CpCmd Block Prog
     deriving (Eq,Show)
 
 data Block
@@ -113,9 +113,9 @@ cmd (BOp c) s d     = case c of
 
 
 -- while helper function
-while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
+while :: CpCmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
 while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
-                    ((s1, _), (s2, _)) -> case (cmd c ((head s1) : s2) d) of
+                    ((s1, _), (s2, _)) -> case (cmd (COp c) ((head s1) : s2) d) of
                                               ((B False : b : cs'), d') -> (s, d')
                                               ((B True  : b : cs'), d') -> case (prog p s d') of
                                                 (ds', d'') -> while c p b ds' d''
