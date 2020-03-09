@@ -10,14 +10,8 @@ type Dict = [(String, Prog)]
 
 data Cmd = PushB Block
          | SOp StCmd
-         | Add
-         | Sub
-         | Mul
-         | Mod
-         | Div
-         | Equ
-         | Gt
-         | Lt
+         | MOp ArCmd
+         | COp CpCmd
          | Concat
          | IfElse Prog Prog
          | Define Macro Prog
@@ -39,6 +33,20 @@ data StCmd
         | Rot
     deriving (Eq,Show)
 
+data ArCmd
+        = Add
+        | Sub
+        | Mul
+        | Div
+        | Mod
+    deriving (Eq,Show)
+
+data CpCmd
+        = Equ
+        | Gt
+        | Lt
+    deriving (Eq,Show)
+
 -- Cmd Semantic Function
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
 cmd (PushB b) s  d  = ((b : s), d)
@@ -53,24 +61,26 @@ cmd (SOp c)   s  d  = case c of
                                     (a : b : s')     -> ((b : a : b : s'), d)
                         Rot  -> case s of
                                     (a : b : c : s') -> ((b : c : a : s'), d)
-cmd Add       s  d  = case s of
-                        (I a : I b : s') -> ((I (a+b) : s'), d)
-cmd Sub       s  d  = case s of
-                        (I a : I b : s') -> ((I (b-a) : s'), d)
-cmd Mul       s  d  = case s of
-                        (I a : I b : s') -> ((I (a*b) : s'), d)
-cmd Div       s  d  = case s of
-                        (I c : I g : s') -> ((I (g `div` c) : s'), d)
-cmd Mod       s  d  = case s of
-                        (I a : I b : s') -> ((I (b `mod` a) : s'), d)
-cmd Equ       s  d  = case s of
-                        (I a : I b : s') -> ((B (a == b) : s'), d)
-                        (B c : B g : s') -> ((B (c == g) : s'), d)
-                        (S e : S f : s') -> ((B (e == f) : s'), d)
-cmd Gt        s  d  = case s of
-                        (I a : I b : s') -> ((B (a>b) : s'), d)
-cmd Lt        s  d  = case s of
-                        (I a : I b : s') -> ((B (a<b) : s'), d)
+cmd (MOp c)   s  d  = case c of
+                        Add ->  case s of
+                                    (I a : I b : s') -> ((I (a+b) : s'), d)
+                        Sub ->  case s of
+                                    (I a : I b : s') -> ((I (b-a) : s'), d)
+                        Mul ->  case s of
+                                    (I a : I b : s') -> ((I (a*b) : s'), d)
+                        Div ->  case s of
+                                    (I c : I g : s') -> ((I (g `div` c) : s'), d)
+                        Mod ->  case s of
+                                    (I a : I b : s') -> ((I (b `mod` a) : s'), d)
+cmd (COp c)   s  d  = case c of
+                        Equ ->  case s of
+                                    (I a : I b : s') -> ((B (a == b) : s'), d)
+                                    (B c : B g : s') -> ((B (c == g) : s'), d)
+                                    (S e : S f : s') -> ((B (e == f) : s'), d)
+                        Gt  ->  case s of
+                                    (I a : I b : s') -> ((B (a>b) : s'), d)
+                        Lt  ->  case s of
+                                    (I a : I b : s') -> ((B (a<b) : s'), d)
 cmd Concat    s  d  = case s of
                         (S a : S b : s') -> ((S (b++a) : s'), d)
 cmd (IfElse t e) s d = case s of
