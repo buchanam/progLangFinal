@@ -10,6 +10,7 @@ type Dict = [(String, Prog)]
 
 data Cmd = PushB Block
          | SOp StCmd
+         | BOp BoolCmd
          | Add
          | Sub
          | Mul
@@ -38,6 +39,12 @@ data StCmd
         | Over
         | Rot
     deriving (Eq,Show)
+
+data BoolCmd
+        = And
+        | Or
+        | Not
+    deriving (Eq, Show)
 
 -- Cmd Semantic Function
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
@@ -81,6 +88,19 @@ cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
+cmd (BOp c) s d     = case c of
+                        And -> case s of 
+                           (B True: B True:s') -> ((B True: s'), d)
+                           (_:_: s')            -> ((B False: s'), d)
+                        Or  -> case s of 
+                           (B True: B True: s')  -> ((B True: s'), d)
+                           (B True: B False: s') -> ((B True: s'), d)
+                           (B False: B True: s') -> ((B True: s'), d)
+                           (_: _: s')            -> ((B False: s'), d)
+                        Not -> case s of 
+                           (B True:s')  -> ((B False:s'), d)
+                           (B False:s') -> ((B True:s'), d)
+
 
 -- while helper function
 while :: Cmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
@@ -100,3 +120,4 @@ stackm :: [Cmd] -> Stack
 stackm [] = []
 stackm p = case (prog p [] []) of
              (s, d) -> s
+
