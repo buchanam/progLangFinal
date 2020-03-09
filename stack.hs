@@ -5,6 +5,7 @@ import Data.List
 
 type Prog = [Cmd]
 type Stack = [Block]
+type TypeStack = [Type]
 type Macro = String
 type Dict = [(String, Prog)]
 
@@ -25,6 +26,11 @@ data Block
         | B Bool
         | S String
     deriving (Eq,Show)
+
+data Type = TInt
+          | TBool
+          | TString
+    deriving (Eq, Show)
 
 data StCmd
         = Drop
@@ -125,6 +131,87 @@ prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
                        (s', d') -> prog cs s' d'
+
+-- static type check stack operations
+typeOfSOp :: StCmd -> TypeStack -> Maybe TypeStack
+typeOfSOp Drop ts = case ts of
+                      (x:xs) -> Just xs
+                      _ -> Nothing
+typeOfSOp Dup ts = case ts of
+                     (x:xs) -> Just (x:x:xs)
+                     _ -> Nothing
+typeOfSOp Swap ts = case ts of
+                     (x:y:xs) -> Just (y:x:xs)
+                     _ -> Nothing
+typeOfSOp Over ts = case ts of
+                     (x:y:xs) -> Just (y:x:y:xs)
+                     _ -> Nothing
+typeOfSOp Rot ts = case ts of
+                     (x:y:z:xs) -> Just (y:z:x:xs)
+                     _ -> Nothing
+
+typeOfCOp :: CpCmd -> TypeStack -> Maybe TypeStack
+typeOfCOp Equ ts = case ts of 
+                    (TInt:TInt:xs) -> Just (TBool:xs)
+                    (TBool:TBool:xs) -> Just (TBool:xs)
+                    (TString:TString:xs) -> Just (TBool:xs)
+typeOfCOp _ ts = case ts of
+                   (TInt:TInt:xs) -> Just (TBool:xs)
+                   _ -> Nothing
+
+typeOfBOp :: BoolCmd -> TypeStack -> Maybe TypeStack
+typeOfBOp Not ts = case ts of
+                    (TBool:xs) -> Just (TBool:xs)
+typeOfBOp _ ts   = case ts of
+                    (TBool:TBool:xs) -> Just (TBool:xs)
+                    _ -> Nothing
+
+
+-- static type check
+typeOf :: Cmd -> TypeStack -> Dict -> Maybe (TypeStack, Dict)
+typeOf (PushB b) ts d = case b of 
+                          (I x) -> Just ((TInt:ts), d)
+                          (B y) -> Just ((TBool:ts), d)
+                          (S z) -> Just ((TString:ts), d)
+typeOf (SOp c) ts d = case (typeOfSOp c ts) of
+                          Just ts' -> Just (ts', d)
+                          _ -> Nothing
+typeOf (MOp c) ts d = case ts of
+                          (TInt:TInt:ts') -> Just ((TInt:ts'), d)
+                          _ -> Nothing
+typeOf (COp c) ts d = case (typeOfCOp c ts) of
+                          Just ts' -> Just (ts', d)
+                          _ -> Nothing
+typeOf Concat  ts d = case ts of
+                          (TString:TString:ts') -> Just ((TString:ts'), d)
+                          _ -> Nothing
+typeOf (BOp c) ts d = case (typeOfBOp c ts) of 
+                          Just ts' -> Just (ts', d)
+                          _ -> Nothing
+typeOf (IfElse t e) ts d = case ts of
+                            (TBool:ts') -> Just (ts', d)
+                            _ -> Nothing       
+typeOf (Define n p) ts d = Just (ts, ((n,p):d))
+typeOf (Call n) ts d     = case lookup n d of
+                            Just p -> case (typeCheck p ts d) of
+                                       Just (ts', d') -> Just (ts', d')
+                                       _              -> Nothing
+                            _ -> Nothing
+typeOf (While c b p) ts d = case ts of
+                            (x:xs) -> Just ((x:xs), d)
+                            _ -> Nothing
+
+
+-- Program type check
+typeCheck :: Prog -> TypeStack -> Dict -> Maybe (TypeStack, Dict)
+typeCheck [] ts d = Just (ts, d)
+typeCheck ((IfElse t e):cs) ts d = case (typeOf (IfElse t e) ts d) of
+                                        Just (ts', d) -> case ((typeCheck (t++cs) ts' d), (typeCheck (e++cs) ts' d)) of
+                                             (Just _, Just _) -> Just (ts', d)
+                                             _                -> Nothing
+typeCheck (c:cs) ts d = case (typeOf c ts d) of
+                             Just (ts', d') -> typeCheck cs ts' d'
+                             _              -> Nothing 
 
 stackm :: [Cmd] -> Stack
 stackm [] = []
