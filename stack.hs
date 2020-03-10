@@ -220,3 +220,8 @@ stackm p = case (typeCheck p [] []) of
                          (s, d) -> s
              Nothing -> []
 
+
+-- good example Euclid's Algorithm
+gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], PushB (I 0), [SOp Dup, SOp Rot, MOp Mod], While (COp Gt), SOp Drop]
+-- myLang gcd
+-- [I 15]
