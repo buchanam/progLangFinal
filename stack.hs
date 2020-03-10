@@ -94,16 +94,6 @@ cmd (COp c)   s  d  = case c of
                                     (I a : I b : s') -> ((B (a>b) : s'), d)
                         Lt  ->  case s of
                                     (I a : I b : s') -> ((B (a<b) : s'), d)
-cmd Concat    s  d  = case s of
-                        (S a : S b : s') -> ((S (b++a) : s'), d)
-cmd (IfElse t e) s d = case s of
-                        (B True : s')    -> prog t s' d
-                        (B False : s')   -> prog e s' d
-cmd (While c b p) s  d   = while c p b s d
-cmd (Define n p) s d = (s, ((n, p) : d))
-cmd (Call n)  s  d  = case lookup n d of
-                        Just p -> prog p s d
-                        Nothing -> (s, d)
 cmd (BOp c) s d     = case c of
                         And -> case s of 
                            (B True: B True:s') -> ((B True: s'), d)
@@ -116,7 +106,16 @@ cmd (BOp c) s d     = case c of
                         Not -> case s of 
                            (B True:s')  -> ((B False:s'), d)
                            (B False:s') -> ((B True:s'), d)
-
+cmd Concat    s  d  = case s of
+                        (S a : S b : s') -> ((S (b++a) : s'), d)
+cmd (IfElse t e) s d = case s of
+                        (B True : s')    -> prog t s' d
+                        (B False : s')   -> prog e s' d
+cmd (While c b p) s  d   = while c p b s d
+cmd (Define n p) s d = (s, ((n, p) : d))
+cmd (Call n)  s  d  = case lookup n d of
+                        Just p -> prog p s d
+                        Nothing -> (s, d)
 
 -- while helper function
 while :: CpCmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
@@ -149,12 +148,12 @@ typeOfSOp Over ts = case ts of
 typeOfSOp Rot ts = case ts of
                      (x:y:z:xs) -> Just (y:z:x:xs)
                      _ -> Nothing
-
 typeOfCOp :: CpCmd -> TypeStack -> Maybe TypeStack
 typeOfCOp Equ ts = case ts of 
                     (TInt:TInt:xs) -> Just (TBool:xs)
                     (TBool:TBool:xs) -> Just (TBool:xs)
                     (TString:TString:xs) -> Just (TBool:xs)
+                    _ -> Nothing
 typeOfCOp _ ts = case ts of
                    (TInt:TInt:xs) -> Just (TBool:xs)
                    _ -> Nothing
@@ -162,6 +161,7 @@ typeOfCOp _ ts = case ts of
 typeOfBOp :: BoolCmd -> TypeStack -> Maybe TypeStack
 typeOfBOp Not ts = case ts of
                     (TBool:xs) -> Just (TBool:xs)
+                    _ -> Nothing
 typeOfBOp _ ts   = case ts of
                     (TBool:TBool:xs) -> Just (TBool:xs)
                     _ -> Nothing
@@ -209,6 +209,7 @@ typeCheck ((IfElse t e):cs) ts d = case (typeOf (IfElse t e) ts d) of
                                         Just (ts', d) -> case ((typeCheck (t++cs) ts' d), (typeCheck (e++cs) ts' d)) of
                                              (Just _, Just _) -> Just (ts', d)
                                              _                -> Nothing
+                                        _ -> Nothing
 typeCheck (c:cs) ts d = case (typeOf c ts d) of
                              Just (ts', d') -> typeCheck cs ts' d'
                              _              -> Nothing 
@@ -222,6 +223,6 @@ stackm p = case (typeCheck p [] []) of
 
 
 -- good example Euclid's Algorithm
-gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], PushB (I 0), [SOp Dup, SOp Rot, MOp Mod], While (COp Gt), SOp Drop]
+-- gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], PushB (I 0), SOp Dup, SOp Rot, MOp Mod, While (Gt), SOp Drop]
 -- myLang gcd
 -- [I 15]
