@@ -215,6 +215,8 @@ typeCheck (c:cs) ts d = case (typeOf c ts d) of
 
 stackm :: [Cmd] -> Stack
 stackm [] = []
-stackm p = case (prog p [] []) of
-             (s, d) -> s
+stackm p = case (typeCheck p [] []) of
+             Just _ -> case (prog p [] []) of
+                         (s, d) -> s
+             Nothing -> []
 
