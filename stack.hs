@@ -63,7 +63,24 @@ data CpCmd
 -- Cmd Semantic Function
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
 cmd (PushB b) s  d  = ((b : s), d)
-cmd (SOp c)   s  d  = case c of
+cmd (SOp c)   s  d  = sOp c s d
+cmd (MOp c)   s  d  = mOp c s d
+cmd (COp c)   s  d  = cOp c s d
+cmd (BOp c) s d     = bOp c s d
+cmd Concat    s  d  = case s of
+                        (S a : S b : s') -> ((S (b++a) : s'), d)
+cmd (IfElse t e) s d = case s of
+                        (B True : s')    -> prog t s' d
+                        (B False : s')   -> prog e s' d
+cmd (While c b p) s  d   = while c p b s d
+cmd (Define n p) s d = (s, ((n, p) : d))
+cmd (Call n)  s  d  = case lookup n d of
+                        Just p -> prog p s d
+                        Nothing -> (s, d)
+
+-- Stack Operations helper function
+sOp :: StCmd -> Stack -> Dict -> (Stack, Dict)
+sOp c s d           = case c of
                         Drop -> case s of
                                     (a : s')         -> (s', d)
                         Dup  -> case s of
@@ -74,7 +91,10 @@ cmd (SOp c)   s  d  = case c of
                                     (a : b : s')     -> ((b : a : b : s'), d)
                         Rot  -> case s of
                                     (a : b : c : s') -> ((b : c : a : s'), d)
-cmd (MOp c)   s  d  = case c of
+
+-- Math Operations helper function
+mOp :: ArCmd -> Stack -> Dict -> (Stack, Dict)
+mOp c s d           =  case c of
                         Add ->  case s of
                                     (I a : I b : s') -> ((I (a+b) : s'), d)
                         Sub ->  case s of
@@ -85,7 +105,10 @@ cmd (MOp c)   s  d  = case c of
                                     (I c : I g : s') -> ((I (g `div` c) : s'), d)
                         Mod ->  case s of
                                     (I a : I b : s') -> ((I (b `mod` a) : s'), d)
-cmd (COp c)   s  d  = case c of
+
+-- Compare Operations helper function
+cOp :: CpCmd -> Stack -> Dict -> (Stack, Dict)
+cOp c s d           =  case c of
                         Equ ->  case s of
                                     (I a : I b : s') -> ((B (a == b) : s'), d)
                                     (B c : B g : s') -> ((B (c == g) : s'), d)
@@ -94,7 +117,10 @@ cmd (COp c)   s  d  = case c of
                                     (I a : I b : s') -> ((B (a>b) : s'), d)
                         Lt  ->  case s of
                                     (I a : I b : s') -> ((B (a<b) : s'), d)
-cmd (BOp c) s d     = case c of
+
+-- Boolean Operations helper function
+bOp :: BoolCmd -> Stack -> Dict -> (Stack, Dict)
+bOp c s d           = case c of 
                         And -> case s of 
                            (B True: B True:s') -> ((B True: s'), d)
                            (_:_: s')            -> ((B False: s'), d)
@@ -106,16 +132,6 @@ cmd (BOp c) s d     = case c of
                         Not -> case s of 
                            (B True:s')  -> ((B False:s'), d)
                            (B False:s') -> ((B True:s'), d)
-cmd Concat    s  d  = case s of
-                        (S a : S b : s') -> ((S (b++a) : s'), d)
-cmd (IfElse t e) s d = case s of
-                        (B True : s')    -> prog t s' d
-                        (B False : s')   -> prog e s' d
-cmd (While c b p) s  d   = while c p b s d
-cmd (Define n p) s d = (s, ((n, p) : d))
-cmd (Call n)  s  d  = case lookup n d of
-                        Just p -> prog p s d
-                        Nothing -> (s, d)
 
 -- while helper function
 while :: CpCmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
@@ -148,6 +164,8 @@ typeOfSOp Over ts = case ts of
 typeOfSOp Rot ts = case ts of
                      (x:y:z:xs) -> Just (y:z:x:xs)
                      _ -> Nothing
+
+-- static type check compare operations
 typeOfCOp :: CpCmd -> TypeStack -> Maybe TypeStack
 typeOfCOp Equ ts = case ts of 
                     (TInt:TInt:xs) -> Just (TBool:xs)
@@ -158,6 +176,7 @@ typeOfCOp _ ts = case ts of
                    (TInt:TInt:xs) -> Just (TBool:xs)
                    _ -> Nothing
 
+-- static type check boolean operations
 typeOfBOp :: BoolCmd -> TypeStack -> Maybe TypeStack
 typeOfBOp Not ts = case ts of
                     (TBool:xs) -> Just (TBool:xs)
@@ -214,6 +233,7 @@ typeCheck (c:cs) ts d = case (typeOf c ts d) of
                              Just (ts', d') -> typeCheck cs ts' d'
                              _              -> Nothing 
 
+-- 
 stackm :: [Cmd] -> Stack
 stackm [] = []
 stackm p = case (typeCheck p [] []) of
