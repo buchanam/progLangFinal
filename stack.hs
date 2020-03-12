@@ -253,6 +253,20 @@ stackm p = case (typeCheck p [] []) of
                          (s, d) -> Ok s
              Nothing -> Error
 
+-- macro for >=
+makeGTE :: Cmd
+makeGTE = Define "gte" [SOp Dup, SOp Rot, SOp Over, COp Gt, SOp Rot, COp Equ, BOp Or]
+
+callGTE :: Cmd 
+callGTE = Call "gte"
+
+-- macro for <=
+-- usage example: stackm [PushB (I 5), PushB (I 4), makeLTE, callGTE]
+makeLTE :: Cmd
+makeLTE = Define "lte" [SOp Dup, SOp Rot, SOp Over, COp Lt, SOp Rot, COp Equ, BOp Or]
+
+callLTE :: Cmd 
+callLTE = Call "lte"
 
 -- good example Euclid's Algorithm
 -- gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], PushB (I 0), SOp Dup, SOp Rot, MOp Mod, While (Gt), SOp Drop]
