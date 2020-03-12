@@ -9,6 +9,9 @@ type TypeStack = [Type]
 type Macro = String
 type Dict = [(String, Prog)]
 
+data Result = Ok Stack | Error
+    deriving (Eq, Show)
+
 data Cmd = PushB Block
          | SOp StCmd
          | BOp BoolCmd
@@ -233,16 +236,19 @@ typeCheck (c:cs) ts d = case (typeOf c ts d) of
                              Just (ts', d') -> typeCheck cs ts' d'
                              _              -> Nothing 
 
--- 
-stackm :: [Cmd] -> Stack
-stackm [] = []
+-- run the program 
+stackm :: [Cmd] -> Result
+stackm [] = Ok []
 stackm p = case (typeCheck p [] []) of
              Just _ -> case (prog p [] []) of
-                         (s, d) -> s
-             Nothing -> []
+                         (s, d) -> Ok s
+             Nothing -> Error
 
 
 -- good example Euclid's Algorithm
 -- gcd = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], PushB (I 0), SOp Dup, SOp Rot, MOp Mod, While (Gt), SOp Drop]
--- myLang gcd
+-- stackm gcd
 -- [I 15]
+
+-- sum of numbers 0-10
+-- stackm [PushB (I 0), PushB (I 0), While Lt (I 100) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
