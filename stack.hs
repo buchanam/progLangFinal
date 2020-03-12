@@ -254,6 +254,8 @@ stackm p = case (typeCheck p [] []) of
              Nothing -> Error
 
 -- macro for >=
+-- usage example: stackm [PushB (I 3), PushB (I 4), makeLTE, callLTE]
+-- output: Ok [B True]
 makeGTE :: Cmd
 makeGTE = Define "gte" [SOp Dup, SOp Rot, SOp Over, COp Gt, SOp Rot, COp Equ, BOp Or]
 
@@ -261,7 +263,8 @@ callGTE :: Cmd
 callGTE = Call "gte"
 
 -- macro for <=
--- usage example: stackm [PushB (I 5), PushB (I 4), makeLTE, callGTE]
+-- usage example: stackm [PushB (I 3), PushB (I 4), makeLTE, callLTE]
+-- output: Ok [B True]
 makeLTE :: Cmd
 makeLTE = Define "lte" [SOp Dup, SOp Rot, SOp Over, COp Lt, SOp Rot, COp Equ, BOp Or]
 
