@@ -18,6 +18,7 @@ data Cmd = PushB Block
          | MOp ArCmd
          | COp CpCmd
          | Concat
+         | Slice Int Int
          | IfElse Prog Prog
          | Define Macro Prog
          | Call Macro
@@ -72,6 +73,8 @@ cmd (COp c)   s  d  = cOp c s d
 cmd (BOp c) s d     = bOp c s d
 cmd Concat    s  d  = case s of
                         (S a : S b : s') -> ((S (b++a) : s'), d)
+cmd (Slice f t) s  d  = case s of
+                          (S a : s') -> ((S (slice f t a) : s'), d)
 cmd (IfElse t e) s d = case s of
                         (B True : s')    -> prog t s' d
                         (B False : s')   -> prog e s' d
@@ -80,6 +83,9 @@ cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
+
+slice :: Int -> Int -> [a] -> [a]
+slice f t ss = take (t - f + 1) (drop f ss)
 
 -- Stack Operations helper function
 sOp :: StCmd -> Stack -> Dict -> (Stack, Dict)
@@ -206,6 +212,9 @@ typeOf (COp c) ts d = case (typeOfCOp c ts) of
                           _ -> Nothing
 typeOf Concat  ts d = case ts of
                           (TString:TString:ts') -> Just ((TString:ts'), d)
+                          _ -> Nothing
+typeOf (Slice f t)  ts d = case ts of
+                          (TString:ts') -> Just ((TString:ts'), d)
                           _ -> Nothing
 typeOf (BOp c) ts d = case (typeOfBOp c ts) of 
                           Just ts' -> Just (ts', d)
