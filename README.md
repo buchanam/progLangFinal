@@ -28,6 +28,8 @@ In the example below the numbers 0-10 are summed.
     - stackm [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
     - result after running is OK [I 55]
 
+Both of these examples are already in the stack.hs file and can be fun with the command in ghci "stackm gcdExample" or "stackm sumExample".
+
 The acceptable commands are shown below
 PushB (I <integer>) -- Pushes an integer onto the stack
 PushB (S <string>) -- Pushes a string onto the stack
@@ -54,7 +56,7 @@ COp Lt - Compares two integers determining if one is less than the other. Places
 COp Gt - Compares two integers determining if one is greater than the other. Places a boolean on the top of the stack.
 
 StrOp Concat - Concatenates two strings.
-StrOp Slice Int Int - Removes some of the characters from a string. eg Slice 0 2 of "HELLO" = "HEL"
+StrOp (Slice Int Int) - Removes some of the characters from a string. eg Slice 0 2 of "HELLO" = "HEL"
 
 IfElse Prog Prog - Conditional branch runs one of the programs depending on a boolean that is on the top of the stack.
 Define Macro Prog - Defines a macro that can then be called later. E.g. Define "myFunc" [PushB (I 0)]

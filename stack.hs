@@ -300,3 +300,8 @@ makeLTE = Define "lte" [SOp Dup, SOp Rot, SOp Over, COp Lt, SOp Rot, COp Equ, BO
 callLTE :: Cmd 
 callLTE = Call "lte"
 
+-- gcd example program
+gcdExample = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], While Gt (I 0) [SOp Dup, SOp Rot, MOp Mod], SOp Drop]
+
+-- sum of numbers 0-10
+sumExample = [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
