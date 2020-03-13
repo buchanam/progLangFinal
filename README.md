@@ -35,7 +35,9 @@ An example of showing the macro functionality makes a macro out of the sumExampl
     - stackm [(Define "sum" sumExample), Call "sum", PushB (I 2), MOp Mul]
     - result after running is Ok [I 110]
 
-These examples are already in the stack.hs file and can be run with the command in ghci "stackm gcdExample" or "stackm sumExample".
+These examples are already in the stack.hs file and can be run with the command in ghci "stackm macroExample", "stackm gcdExample" or "stackm sumExample".
+
+There are also some examples of bad programs in the code.  These can be ran with "stackm underflowExample", "stackm typesExample", "stackm badWhileExample", and "stackm concatExample".  All of these except the badWhileExample will return the value Errori.  The badWhileExample will loop forever and requires the user to ctrl-c.
 
 The acceptable commands are shown below
 PushB (I <integer>) -- Pushes an integer onto the stack
