@@ -272,35 +272,22 @@ typeCheck (c:cs) ts d = case (typeOf c ts d) of
                              Just (ts', d') -> typeCheck cs ts' d'
                              _              -> Nothing 
 
+-- library functions
+startingDict = [("notEqu", [COp Equ, BOp Not]), 
+                ("gte", [SOp Dup, SOp Rot, SOp Over, COp Gt, SOp Rot, COp Equ, BOp Or]), 
+                ("lte", [SOp Dup, SOp Rot, SOp Over, COp Lt, SOp Rot, COp Equ, BOp Or])]
+
 -- Run a program
 -- Returns Ok Stack if the program passes they type checking
 -- Returns Error if there was a type error
 stackm :: [Cmd] -> Result
 stackm [] = Ok []
-stackm p = case (typeCheck p [] []) of
-             Just _ -> case (prog p [] []) of
+stackm p = case (typeCheck p [] startingDict) of
+             Just _ -> case (prog p [] startingDict) of
                          (s, d) -> Ok s
              Nothing -> Error
 
--- macro for >=
--- usage example: stackm [PushB (I 3), PushB (I 4), makeLTE, callLTE]
--- output: Ok [B True]
-makeGTE :: Cmd
-makeGTE = Define "gte" [SOp Dup, SOp Rot, SOp Over, COp Gt, SOp Rot, COp Equ, BOp Or]
-
-callGTE :: Cmd 
-callGTE = Call "gte"
-
--- macro for <=
--- usage example: stackm [PushB (I 3), PushB (I 4), makeLTE, callLTE]
--- output: Ok [B True]
-makeLTE :: Cmd
-makeLTE = Define "lte" [SOp Dup, SOp Rot, SOp Over, COp Lt, SOp Rot, COp Equ, BOp Or]
-
-callLTE :: Cmd 
-callLTE = Call "lte"
-
--- gcd example program
+-- greatest common divisor example program
 gcdExample = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], While Gt (I 0) [SOp Dup, SOp Rot, MOp Mod], SOp Drop]
 
 -- sum of numbers 0-10
