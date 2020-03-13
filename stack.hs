@@ -308,3 +308,16 @@ sumExample = [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, S
 
 -- multiply sum of numbers from 0-10 by 2
 macroExample = [(Define "sum" sumExample), Call "sum", PushB (I 2), MOp Mul]
+
+-- bad example for underflow
+underflowExample = [PushB (I 0), MOp Add]
+
+-- bad example for wrong types for an operation
+typesExample = [PushB (I 0), PushB (S "Hello world!"), MOp Add]
+
+-- bad example for while loop that never ends
+-- this will loop forever
+badWhileExample = [PushB (I 0), While Gt (I (-1)) [PushB (I 1), MOp Add]]
+
+-- bad example of concatenation
+concatExample = [PushB (S "Hello World!"), PushB (S "Another String"), StrOp Concat, StrOp Concat]
