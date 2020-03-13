@@ -9,9 +9,11 @@ type TypeStack = [Type]
 type Macro = String
 type Dict = [(String, Prog)]
 
+-- type for the return from the main language call
 data Result = Ok Stack | Error
     deriving (Eq, Show)
 
+-- type for all the language commands
 data Cmd = PushB Block
          | SOp StCmd
          | BOp BoolCmd
@@ -25,17 +27,20 @@ data Cmd = PushB Block
          | While CpCmd Block Prog
     deriving (Eq,Show)
 
+-- types for items that can be placed on the stack
 data Block
         = I Int
         | B Bool
         | S String
     deriving (Eq,Show)
 
+-- types that are placed on the type-stack during the staic type checking
 data Type = TInt
           | TBool
           | TString
     deriving (Eq, Show)
 
+-- stack commands
 data StCmd
         = Drop
         | Dup
@@ -44,12 +49,14 @@ data StCmd
         | Rot
     deriving (Eq,Show)
 
+-- boolean commands
 data BoolCmd
         = And
         | Or
         | Not
     deriving (Eq, Show)
 
+-- arithmetic commands
 data ArCmd
         = Add
         | Sub
@@ -58,13 +65,15 @@ data ArCmd
         | Mod
     deriving (Eq,Show)
 
+-- comparision commands
 data CpCmd
         = Equ
         | Gt
         | Lt
     deriving (Eq,Show)
 
--- Cmd Semantic Function
+-- Semantic Function
+-- semantic domain = Stack -> Dict -> (Stack, Dict)
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
 cmd (PushB b) s  d  = ((b : s), d)
 cmd (SOp c)   s  d  = sOp c s d
@@ -150,7 +159,8 @@ while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
                                               ((B True  : b : cs'), d') -> case (prog p s d') of
                                                 (ds', d'') -> while c p b ds' d''
 
--- Semantic function for Prog
+-- Semantic function for Program
+-- senamtic domain = Stack -> Dict -> (Stack, Dict)
 prog :: Prog -> Stack -> Dict -> (Stack, Dict)
 prog [] s d         = (s, d)
 prog (c : cs) s d   = case cmd c s d of
@@ -174,7 +184,7 @@ typeOfSOp Rot ts = case ts of
                      (x:y:z:xs) -> Just (y:z:x:xs)
                      _ -> Nothing
 
--- static type check compare operations
+-- static type check comparison operations
 typeOfCOp :: CpCmd -> TypeStack -> Maybe TypeStack
 typeOfCOp Equ ts = case ts of 
                     (TInt:TInt:xs) -> Just (TBool:xs)
@@ -195,7 +205,7 @@ typeOfBOp _ ts   = case ts of
                     _ -> Nothing
 
 
--- static type check
+-- static type check a command
 typeOf :: Cmd -> TypeStack -> Dict -> Maybe (TypeStack, Dict)
 typeOf (PushB b) ts d = case b of 
                           (I x) -> Just ((TInt:ts), d)
@@ -233,7 +243,10 @@ typeOf (While c b p) ts d = case ts of
                             _ -> Nothing
 
 
--- Program type check
+-- This function performs the static type checking for a program
+-- Returns Just (TypeStack, Dict) if the program has no type errors
+-- Returns Nothing if there is a type error
+-- semantic domain = TypeStack -> Dict -> Maybe (TypeStack, Dict)
 typeCheck :: Prog -> TypeStack -> Dict -> Maybe (TypeStack, Dict)
 typeCheck [] ts d = Just (ts, d)
 typeCheck ((IfElse t e):cs) ts d = case (typeOf (IfElse t e) ts d) of
@@ -245,7 +258,9 @@ typeCheck (c:cs) ts d = case (typeOf c ts d) of
                              Just (ts', d') -> typeCheck cs ts' d'
                              _              -> Nothing 
 
--- run the program 
+-- Run a program
+-- Returns Ok Stack if the program passes they type checking
+-- Returns Error if there was a type error
 stackm :: [Cmd] -> Result
 stackm [] = Ok []
 stackm p = case (typeCheck p [] []) of
