@@ -4,8 +4,8 @@ Monica Holliday - hollidmo
 Mitchell Schenk - schenkmi  
 Michaela Buchanan - buchanam  
 
-A basic stack-based language which utilizes stack operations, similar to Forth, to perform arithmetic and logical operations. It includes features such as conditionals, loops, macros with more to come. The language has more than one stack to provide loop functionality and
-uses a dictionary to provide the ability to define and call macros.
+A basic stack-based language which utilizes stack operations, similar to Forth, to perform arithmetic and logical operations. It includes features such as conditionals, loops, macros with more to come.  
+ The language has more than one stack to provide loop functionality and uses a dictionary to provide the ability to define and call macros.  
 
 The language is designed to run from GHCI by loading the file stack.hs.
 
@@ -37,7 +37,8 @@ An example of showing the macro functionality makes a macro out of the sumExampl
 
 These examples are already in the stack.hs file and can be run with the command in ghci "stackm macroExample", "stackm gcdExample" or "stackm sumExample".
 
-There are also some examples of bad programs in the code.  These can be ran with "stackm underflowExample", "stackm typesExample", "stackm badWhileExample", and "stackm concatExample".  All of these except the badWhileExample will return the value Errori.  The badWhileExample will loop forever and requires the user to ctrl-c.
+There are also some examples of bad programs in the code.  These can be ran with "stackm underflowExample", "stackm typesExample", "stackm badWhileExample", and "stackm concatExample".  
+All of these except the badWhileExample will return the value Error.  The badWhileExample will loop forever and requires the user to ctrl-c.  
 
 The acceptable commands are shown below
 PushB (I <integer>) -- Pushes an integer onto the stack
@@ -70,4 +71,6 @@ StrOp (Slice Int Int) - Removes some of the characters from a string. eg Slice 0
 IfElse Prog Prog - Conditional branch runs one of the programs depending on a boolean that is on the top of the stack.
 Define Macro Prog - Defines a macro that can then be called later. E.g. Define "myFunc" [PushB (I 0)]
 Call Macro - Calls a macro that has been defined
-While CpCmd Block Prog - While loop where Block is the stopping case for the while loop and CpCmd is the comparision between the value on the top of the stack and the Block passed in.  The program prog will be run until the comparision between the value on the top of the stack with the passed in Block fails. CpCmd can be Equ, Gt, Lt, and Block can be (I <integer>), (S <string>), or (B <boolean>).
+While CpCmd Block Prog - While loop where Block is the stopping case for the while loop and CpCmd is the comparision between the value on the top of the stack and the Block passed in.  
+    The program prog will be run until the comparision between the value on the top of the stack with the passed in Block fails. 
+    CpCmd can be Equ, Gt, Lt, and Block can be (I <integer>), (S <string>), or (B <boolean>).  
