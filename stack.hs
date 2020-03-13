@@ -305,3 +305,6 @@ gcdExample = [PushB (I 210), PushB (I 45), SOp Over, SOp Over, COp Gt, IfElse [S
 
 -- sum of numbers 0-10
 sumExample = [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
+
+-- multiply sum of numbers from 0-10 by 2
+macroExample = [(Define "sum" sumExample), Call "sum", PushB (I 2), MOp Mul]

@@ -28,7 +28,11 @@ In the example below the numbers 0-10 are summed.
     - stackm [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
     - result after running is OK [I 55]
 
-Both of these examples are already in the stack.hs file and can be fun with the command in ghci "stackm gcdExample" or "stackm sumExample".
+An example of showing the macro functionality makes a macro out of the sumExample, calls it and doubles it.
+    - stackm [(Define "sum" sumExample), Call "sum", PushB (I 2), MOp Mul]
+    - result after running is Ok [I 110]
+
+These examples are already in the stack.hs file and can be run with the command in ghci "stackm gcdExample" or "stackm sumExample".
 
 The acceptable commands are shown below
 PushB (I <integer>) -- Pushes an integer onto the stack
