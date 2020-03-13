@@ -27,3 +27,36 @@ Another example of a program that one could create using the stack-m language is
 In the example below the numbers 0-10 are summed.
     - stackm [PushB (I 0), PushB (I 0), While Lt (I 10) [PushB (I 1), MOp Add, SOp Dup, SOp Rot, MOp Add, SOp Swap], SOp Drop]
     - result after running is OK [I 55]
+
+The acceptable commands are shown below
+PushB (I <integer>) -- Pushes an integer onto the stack
+PushB (S <string>) -- Pushes a string onto the stack
+PushB (B <True/False>) -- Pushes a boolean onto the stack
+
+SOp Drop - removes the top element from the stack
+SOp Dup - duplicates the top element on the stack
+SOp Swap - swaps the topmost and second topmost elements on the stack
+SOp Over - takes the second topmost element on the stack and adds a copy to the top of the stack
+SOp Rot - changes the order of the top three elements on the stack e.g. [a, b, c] -> [b, c, a]
+
+BOp And - Logical and between two booleans
+BOp Or - Logical or between two booleans
+BOp Not - Logical negation of a boolean
+
+MOp Add - Adds two integers
+MOp Sub - Subtraction between two integers
+MOp Mul - Multiplication of two integers
+MOp Div - Division of two integers
+MOp Mod - Modulus of two integers
+
+COp Equ - Compares two values of the same type and places True on top of the stack if they are equal, False if they are not
+COp Lt - Compares two integers determining if one is less than the other. Places boolean on top of stack.
+COp Gt - Compares two integers determining if one is greater than the other. Places a boolean on the top of the stack.
+
+StrOp Concat - Concatenates two strings.
+StrOp Slice Int Int - Removes some of the characters from a string. eg Slice 0 2 of "HELLO" = "HEL"
+
+IfElse Prog Prog - Conditional branch runs one of the programs depending on a boolean that is on the top of the stack.
+Define Macro Prog - Defines a macro that can then be called later. E.g. Define "myFunc" [PushB (I 0)]
+Call Macro - Calls a macro that has been defined
+While CpCmd Block Prog - While loop where Block is the stopping case for the while loop and CpCmd is the comparision between the value on the top of the stack and the Block passed in.  The program prog will be run until the comparision between the value on the top of the stack with the passed in Block fails. CpCmd can be Equ, Gt, Lt, and Block can be (I <integer>), (S <string>), or (B <boolean>).
