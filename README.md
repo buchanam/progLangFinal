@@ -15,7 +15,7 @@ To use the stack-m language using ghci:
        The starting dictionary contains the macros lte, gte, and notEqu, which are implemented using combinations of the core  
        commands LT, GT, and Equ
     3) type the command "stackm" followed by a list of valid commands  
-        - eg "stackm [PushB (I 2), PushB (I 3), MOp Mul]" will produce the result Ok [I 6]  
+        - eg "stackm [PushB (I 2), PushB (I 3), MOp Mul]" will produce the result Ok [I 6], or "stackm [PushB (I 0), PushB (I 0), Call "notEqu"]" which will produce the result Ok [B False]
         - if the sequence of commands entered is not valid ([PushB (I 1), MOp Mul]) Error will be returned  
 
 A more complicated example is the implementation of Euclid's Algorithm to solve for the gcd of two numbers.  
