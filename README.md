@@ -11,10 +11,13 @@ The language is designed to run from GHCI by loading the file stack.hs.
 
 To use the stack-m language using ghci:  
     1) load the file stack.hs  
-    2) type the command "stackm" followed by a list of valid commands  
-        - eg "stackm [PushB (I 2), PushB (I 3), MOp Mul]" will produce the result Ok [I 6]
-        - if the sequence of commands entered is not valid ([PushB (I 1), MOp Mul]) Error will be returned
-  
+    2) the command "stackm" is used to run a program, it will run the program with an empty stack and the starting dictionary  
+       The starting dictionary contains the macros lte, gte, and notEqu, which are implemented using combinations of the core  
+       commands LT, GT, and Equ
+    3) type the command "stackm" followed by a list of valid commands  
+        - eg "stackm [PushB (I 2), PushB (I 3), MOp Mul]" will produce the result Ok [I 6]  
+        - if the sequence of commands entered is not valid ([PushB (I 1), MOp Mul]) Error will be returned  
+
 A more complicated example is the implementation of Euclid's Algorithm to solve for the gcd of two numbers.  
     1) using ghci create the list of commands as follows:  
         - gcd = [SOp Over, SOp Over, COp Gt, IfElse [SOp Swap] [], While Gt (I 0) [SOp Dup, SOp Rot, MOp Mod], SOp Drop]
