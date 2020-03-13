@@ -19,8 +19,7 @@ data Cmd = PushB Block
          | BOp BoolCmd
          | MOp ArCmd
          | COp CpCmd
-         | Concat
-         | Slice Int Int
+         | StrOp StrCmd 
          | IfElse Prog Prog
          | Define Macro Prog
          | Call Macro
@@ -72,6 +71,11 @@ data CpCmd
         | Lt
     deriving (Eq,Show)
 
+data StrCmd
+    = Concat
+    | Slice Int Int
+    deriving (Eq, Show)
+
 -- Semantic Function
 -- semantic domain = Stack -> Dict -> (Stack, Dict)
 cmd :: Cmd -> Stack -> Dict -> (Stack, Dict)
@@ -80,10 +84,7 @@ cmd (SOp c)   s  d  = sOp c s d
 cmd (MOp c)   s  d  = mOp c s d
 cmd (COp c)   s  d  = cOp c s d
 cmd (BOp c) s d     = bOp c s d
-cmd Concat    s  d  = case s of
-                        (S a : S b : s') -> ((S (b++a) : s'), d)
-cmd (Slice f t) s  d  = case s of
-                          (S a : s') -> ((S (slice f t a) : s'), d)
+cmd (StrOp c) s d   = strOp c s d
 cmd (IfElse t e) s d = case s of
                         (B True : s')    -> prog t s' d
                         (B False : s')   -> prog e s' d
@@ -92,9 +93,6 @@ cmd (Define n p) s d = (s, ((n, p) : d))
 cmd (Call n)  s  d  = case lookup n d of
                         Just p -> prog p s d
                         Nothing -> (s, d)
-
-slice :: Int -> Int -> [a] -> [a]
-slice f t ss = take (t - f + 1) (drop f ss)
 
 -- Stack Operations helper function
 sOp :: StCmd -> Stack -> Dict -> (Stack, Dict)
@@ -151,6 +149,17 @@ bOp c s d           = case c of
                            (B True:s')  -> ((B False:s'), d)
                            (B False:s') -> ((B True:s'), d)
 
+-- String operations helper function
+strOp :: StrCmd -> Stack -> Dict -> (Stack, Dict)
+strOp Concat    s  d  = case s of
+                        (S a : S b : s') -> ((S (b++a) : s'), d)
+strOp (Slice f t) s  d  = case s of
+                          (S a : s') -> ((S (slice f t a) : s'), d)
+
+-- slice helper
+slice :: Int -> Int -> [a] -> [a]
+slice f t ss = take (t - f + 1) (drop f ss)
+
 -- while helper function
 while :: CpCmd -> Prog -> Block -> Stack -> Dict -> (Stack, Dict)
 while c p b s d = case ((cmd (SOp Dup) s d), (cmd (SOp Dup) [b] d)) of
@@ -204,6 +213,14 @@ typeOfBOp _ ts   = case ts of
                     (TBool:TBool:xs) -> Just (TBool:xs)
                     _ -> Nothing
 
+-- static type check string operations
+typeOfStrOp :: StrCmd -> TypeStack -> Maybe TypeStack
+typeOfStrOp Concat ts = case ts of
+                        (TString : TString : ts') -> Just (TString : ts')
+                        _ -> Nothing
+typeOfStrOp (Slice f t) ts = case ts of
+                          (TString : ts') -> Just (TString : ts')
+                          _ -> Nothing
 
 -- static type check a command
 typeOf :: Cmd -> TypeStack -> Dict -> Maybe (TypeStack, Dict)
@@ -220,11 +237,8 @@ typeOf (MOp c) ts d = case ts of
 typeOf (COp c) ts d = case (typeOfCOp c ts) of
                           Just ts' -> Just (ts', d)
                           _ -> Nothing
-typeOf Concat  ts d = case ts of
-                          (TString:TString:ts') -> Just ((TString:ts'), d)
-                          _ -> Nothing
-typeOf (Slice f t)  ts d = case ts of
-                          (TString:ts') -> Just ((TString:ts'), d)
+typeOf (StrOp c) ts d = case (typeOfStrOp c ts) of
+                          Just ts' -> Just (ts', d)
                           _ -> Nothing
 typeOf (BOp c) ts d = case (typeOfBOp c ts) of 
                           Just ts' -> Just (ts', d)
